@@ -30,7 +30,7 @@ def main():
     filename = f'./samples/real/{args.task}/{fname}.npy'
     mask_filename = f'./samples/real/prospective/{fname}_mask.npy'
 
-    print('initaializing...')
+    print('initializing...')
     configs = importlib.import_module(f"configs.ve.fastmri_knee_320_ncsnpp_continuous")
     config = configs.get_config()
     img_size = config.data.image_size
