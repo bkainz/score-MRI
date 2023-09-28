@@ -203,7 +203,7 @@ def create_argparser():
     parser.add_argument('--m', type=int, help='Number of corrector step per single predictor step.'
                                               'It is advised not to change this default value.', default=1)
     parser.add_argument('--select_slice', help='select a specific slice from the stack, otherwise all is reconstructed', default=-1)
-    parser.add_argument('--gen_no_mask', help='generate no undersampling mask, all ones, default=False', default=False)
+    parser.add_argument('--gen_no_mask', action="store_true", help='generate no undersampling mask, all ones, default=False', default=False)
     return parser
 
 
