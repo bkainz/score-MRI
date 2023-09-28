@@ -6,7 +6,7 @@ from sampling import (ReverseDiffusionPredictor,
                       get_pc_fouriercs_RI)
 from models import ncsnpp
 import time
-from utils import fft2, ifft2, get_mask, get_data_scaler, get_data_inverse_scaler, restore_checkpoint
+from utils import fft2, ifft2, fft2_m, ifft2_m, get_mask, get_data_scaler, get_data_inverse_scaler, restore_checkpoint
 import torch
 import torch.nn as nn
 import numpy as np
@@ -176,6 +176,10 @@ def ifftshift(x: torch.Tensor, dim: Optional[List[int]] = None) -> torch.Tensor:
 
     return roll(x, shift, dim)
 
+def normalize_complex_arr(a):
+    a_oo = a - a.real.min() - 1j*a.imag.min() # origin offsetted
+    return a_oo/np.abs(a_oo).max()
+
 def main():
     ###############################################
     # 1. Configurations
@@ -196,6 +200,7 @@ def main():
 
     # Read data
     img = torch.from_numpy(np.load(filename).astype(np.complex64))
+    print(np.median(img.real))
 
     plt.clf()
     plt.imshow(np.abs(img.real), cmap='gray')
@@ -213,25 +218,34 @@ def main():
 
     kt = torch.from_numpy(np.stack((k.real, k.imag), axis=-1))
     print(kt.dtype)
-    ifftimg = ifft2c_new(kt)#torch.fft.ifft2(torch.fft.ifftshift(kt))#.unsqueeze(0)
+    ifftimg = ifft2_m(torch.from_numpy(k))#torch.fft.ifft2(torch.fft.ifftshift(kt))#.unsqueeze(0)#
     print(ifftimg.shape)
     plt.clf()
-    plt.imshow(torch.abs(ifftimg[:,:,0]).numpy(), cmap='gray')
+    plt.imshow(torch.abs(ifftimg.real).numpy(), cmap='gray')
     plt.savefig('scifftinput_.png')
 
     cropx = (ifftimg.shape[0]-320)//2
     cropy = (ifftimg.shape[1]-320)//2 
-    ifftimg=ifftimg[cropx:cropx+320,cropy:cropy+320,:]
+    ifftimg=ifftimg[cropx:cropx+320,cropy:cropy+320]
     print(ifftimg.shape)
 
     plt.clf()
-    plt.imshow(torch.abs(ifftimg[:,:,0]).numpy(), cmap='gray')
+    plt.imshow(torch.abs(ifftimg.real).numpy(), cmap='gray')
     plt.savefig('scifftinput_crop.png')
 
-    
     #TODO use kspace directly and convert back with the functions here
+    img = normalize_complex_arr(ifftimg)
+    print(np.median(img.real))
     #img.real = ifftimg[:,:,0]
     #img.imag = ifftimg[:,:,1]
+    #kspace = fft2(img)
+    #plt.clf()
+    #plt.imshow(torch.log(torch.abs(kspace.real)).numpy(), cmap='gray')
+    #plt.savefig('scfftinput_crop.png')
+    #kspace = img
+    #kspace.real = fftimg[:,:,0]
+    #kspace.imag = fftimg[:,:,1]
+    #kspace = kspace.to(config.device)
 
     img = img.view(1, 1, 320, 320)
     img = img.to(config.device)
@@ -285,6 +299,9 @@ def main():
                                        denoise=True)
     # fft
     kspace = fft2(img)
+    plt.clf()
+    plt.imshow(torch.log(torch.abs(kspace.cpu().squeeze(0).squeeze(0).real)).numpy(), cmap='gray')
+    plt.savefig('sc_scfftinput_crop.png')
 
     # undersampling
     under_kspace = kspace * mask
