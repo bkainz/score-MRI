@@ -207,12 +207,13 @@ def main():
     plt.savefig('their_scfftinputnp.png')
 
     #todo replace with data arg path
-    file = "/vol/datasets/cil/2021_11_23_fastMRI_data/knee/unzipped/singlecoil_train/file1000898.h5"
+    #file = "/vol/datasets/cil/2021_11_23_fastMRI_data/knee/unzipped/singlecoil_train/file1000898.h5"
+    file = "/vol/datasets/cil/2021_11_23_fastMRI_data/knee/unzipped/singlecoil_test_v2/file1000692_v2.h5"
     hf = h5py.File(file, 'r')
     print(hf['kspace'].shape)
 
     k=hf['kspace'][hf['kspace'].shape[0]//2,:,:]
-    k=hf['kspace'][2,:,:]
+    #k=hf['kspace'][0,:,:]
     plt.clf()
     plt.imshow(np.log(np.abs(k)), cmap='gray')
     plt.savefig('scfftinputnp.png')
