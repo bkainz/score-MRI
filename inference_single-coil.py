@@ -210,5 +210,6 @@ def create_argparser():
 
 #usage example
 #CUDA_VISIBLE_DEVICES=1 python inference_single-coil.py --data '/vol/datasets/cil/2021_11_23_fastMRI_data/knee/unzipped/singlecoil_challenge/file1001255.h5' --N 1000 --acc_factor 1 --select_slice 20 --gen_no_mask
+#CUDA_VISIBLE_DEVICES=1 python inference_single-coil.py --data '/vol/datasets/cil/2021_11_23_fastMRI_data/knee/unzipped/singlecoil_train/file1001141.h5' --N 200 --acc_factor 1 --select_slice 20 --gen_no_mask
 if __name__ == "__main__":
     main()
