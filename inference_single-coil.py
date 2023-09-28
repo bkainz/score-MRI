@@ -130,7 +130,7 @@ def reconstruct(hf, i, fname_, config, args):
     input = under_img.squeeze().cpu().detach().numpy()
     label = img.squeeze().cpu().detach().numpy()
     mask_sv = mask.squeeze().cpu().detach().numpy()
-    under_kspace_sv = torch.log(under_kspace).squeeze().cpu().detach().numpy()
+    under_kspace_sv = torch.log(torch.abs(under_kspace)).squeeze().cpu().detach().numpy()
     kspace_sv = torch.log(kspace).squeeze().cpu().detach().numpy()
 
     np.save(str(save_root / 'input' / fname) + '.npy', input)
@@ -146,8 +146,9 @@ def reconstruct(hf, i, fname_, config, args):
     recon = x.squeeze().cpu().detach().numpy()
     np.save(str(save_root / 'recon' / fname) + '.npy', recon)
     plt.imsave(str(save_root / 'recon' / fname) + '.png', np.abs(recon), cmap='gray')
-    diffimage = np.abs(input) - np.abs(recon)
-    plt.imsave(str(save_root / 'recon' / fname) + '_diff.png', np.abs(diffimage), cmap='gray')
+    input_img = img.squeeze().cpu().detach().numpy()
+    diffimage = np.abs(np.abs(input_img) - np.abs(recon))
+    plt.imsave(str(save_root / 'recon' / fname) + '_diff.png', np.abs(diffimage), cmap='hot')
 
 def main():
     ###############################################
@@ -208,6 +209,6 @@ def create_argparser():
 
 
 #usage example
-#CUDA_VISIBLE_DEVICES=1 python inference_single-coil.py --data '/vol/datasets/cil/2021_11_23_fastMRI_data/knee/unzipped/singlecoil_challenge/file1001255.h5' --N 1000 --acc_factor 1 --select_slice 20 --gen_mask 0
+#CUDA_VISIBLE_DEVICES=1 python inference_single-coil.py --data '/vol/datasets/cil/2021_11_23_fastMRI_data/knee/unzipped/singlecoil_challenge/file1001255.h5' --N 1000 --acc_factor 1 --select_slice 20 --gen_no_mask
 if __name__ == "__main__":
     main()
