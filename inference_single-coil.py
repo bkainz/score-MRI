@@ -212,6 +212,7 @@ def main():
     print(hf['kspace'].shape)
 
     k=hf['kspace'][hf['kspace'].shape[0]//2,:,:]
+    k=hf['kspace'][2,:,:]
     plt.clf()
     plt.imshow(np.log(np.abs(k)), cmap='gray')
     plt.savefig('scfftinputnp.png')
@@ -236,16 +237,10 @@ def main():
     #TODO use kspace directly and convert back with the functions here
     img = normalize_complex_arr(ifftimg)
     print(np.median(img.real))
-    #img.real = ifftimg[:,:,0]
-    #img.imag = ifftimg[:,:,1]
-    #kspace = fft2(img)
-    #plt.clf()
-    #plt.imshow(torch.log(torch.abs(kspace.real)).numpy(), cmap='gray')
-    #plt.savefig('scfftinput_crop.png')
-    #kspace = img
-    #kspace.real = fftimg[:,:,0]
-    #kspace.imag = fftimg[:,:,1]
-    #kspace = kspace.to(config.device)
+
+    plt.clf()
+    plt.imshow(torch.log(torch.abs(img.real)).numpy(), cmap='gray')
+    plt.savefig('scfftinput_crop.png')
 
     img = img.view(1, 1, 320, 320)
     img = img.to(config.device)
