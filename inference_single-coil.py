@@ -22,10 +22,28 @@ import h5py
 import torchvision.transforms as T
 import torchvision
 import imageio
+import scipy
 
 def normalize_complex_arr(a):
     a_oo = a - a.real.min() - 1j*a.imag.min()
     return a_oo/np.abs(a_oo).max()
+
+def downsample_bin(data, target_length):
+    section_length = len(data) / target_length
+    downsampled = []
+
+    for i in range(target_length):
+        start_idx = int(i * section_length)
+        end_idx = int((i + 1) * section_length)
+        section = data[start_idx:end_idx]
+        
+        # Majority decision for boolean
+        if np.sum(section) > len(section) / 2:
+            downsampled.append(True)
+        else:
+            downsampled.append(False)
+
+    return np.array(downsampled)
 
 def reconstruct(hf, i, fname_, config, args):
     N = args.N
@@ -34,6 +52,10 @@ def reconstruct(hf, i, fname_, config, args):
     print("reconstructing slice: " + str(i))
     batch_size = 1
     k=hf['kspace'][i,:,:]
+    print('raw kspace shape ', k.shape)
+    # Specify save directory for saving generated samples
+    save_root = Path(f'./results/single-coil')
+    save_root.mkdir(parents=True, exist_ok=True)
     
     fname = str(i) + "_" + os.path.splitext(fname_)[0]
     print(fname)
@@ -50,12 +72,22 @@ def reconstruct(hf, i, fname_, config, args):
 
     #use kspace directly and convert back with the fft here, zero-mean normalise it 
     img = normalize_complex_arr(ifftimg)
-    #print(np.median(img.real))
-
+    print('img shape ', img.shape)
     img = img.view(1, 1, 320, 320)
     img = img.to(config.device)
 
-    if not args.gen_no_mask:
+    if 'mask' in hf:
+        print('mask found in hf')
+        maskhf = hf['mask'][:]
+        print('raw mask shape', maskhf.shape)
+        maskhf = downsample_bin(maskhf, img.shape[3])
+        maskhf = np.expand_dims(maskhf, axis=0)
+        mask= np.repeat(maskhf, img.shape[2], axis=0)
+        mask = mask.astype(int)
+        plt.imsave(str(save_root / 'input' / fname) + '_hfmask.png', mask, cmap='gray')
+        print('mask shape', mask.shape)
+        mask = torch.from_numpy(mask).to(config.device)
+    elif not args.gen_no_mask:
         mask = get_mask(img, img_size, batch_size,
                         type=args.mask_type,
                         acc_factor=args.acc_factor,
@@ -83,10 +115,6 @@ def reconstruct(hf, i, fname_, config, args):
     state = dict(step=0, model=score_model, ema=ema)
     state = restore_checkpoint(ckpt_filename, state, config.device, skip_sigma=True)
     ema.copy_to(score_model.parameters())
-
-    # Specify save directory for saving generated samples
-    save_root = Path(f'./results/single-coil')
-    save_root.mkdir(parents=True, exist_ok=True)
 
     irl_types = ['input', 'recon', 'recon_progress', 'label']
     for t in irl_types:
