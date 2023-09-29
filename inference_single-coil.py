@@ -207,6 +207,7 @@ def main():
     file = fpath
     hf = h5py.File(file, 'r')
     print(hf.keys())
+    #print(hf['ismrmrd_header'])
     #print(hf['kspace'].shape)
 
     slice = int(args.select_slice)
