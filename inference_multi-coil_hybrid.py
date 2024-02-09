@@ -30,11 +30,13 @@ def main():
     fname = args.data
     filename = f'./samples/multi-coil/{fname}.npy'
 
-    print('initaializing...')
+    print('initializing...')
     configs = importlib.import_module(f"configs.ve.fastmri_knee_320_ncsnpp_continuous")
     config = configs.get_config()
     img_size = config.data.image_size
     batch_size = 1
+
+    print(torch.cuda.is_available())
 
     schedule = 'linear'
     start_lamb = 1.0
@@ -70,6 +72,8 @@ def main():
     # sigmas = mutils.get_sigmas(config)
     scaler = get_data_scaler(config)
     inverse_scaler = get_data_inverse_scaler(config)
+
+    print(torch.cuda.is_available())
 
     # create model and load checkpoint
     score_model = mutils.create_model(config)
