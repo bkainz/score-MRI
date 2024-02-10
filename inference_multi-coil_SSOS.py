@@ -29,11 +29,13 @@ def main():
     fname = args.data
     filename = f'./samples/multi-coil/{fname}.npy'
 
-    print('initaializing...')
+    print('initializing...')
     configs = importlib.import_module(f"configs.ve.fastmri_knee_320_ncsnpp_continuous")
     config = configs.get_config()
     img_size = config.data.image_size
     batch_size = 1
+
+    print(torch.cuda.is_available())
 
     # Read data
     img = normalize_complex(torch.from_numpy(np.load(filename).astype(np.complex64)))
@@ -75,6 +77,13 @@ def main():
         save_root_f = save_root / t
         save_root_f.mkdir(parents=True, exist_ok=True)
 
+    for t in range(30):
+        co = 'coil'+str(t)
+        save_root_f = save_root / 'recon_progress' / 'recon' / co
+        save_root_f.mkdir(parents=True, exist_ok=True)
+
+    print(torch.cuda.is_available())
+
     ###############################################
     # 2. Inference
     ###############################################
@@ -87,7 +96,9 @@ def main():
                                                mask=mask,
                                                probability_flow=probability_flow,
                                                continuous=config.training.continuous,
-                                               denoise=True)
+                                               denoise=True,
+                                               save_progress=True,
+                                               save_root=save_root / 'recon_progress')
     # fft
     kspace = fft2_m(img)
 

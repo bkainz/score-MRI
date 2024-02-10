@@ -122,7 +122,9 @@ def main():
                                                   lamb_schedule=lamb_schedule,
                                                   probability_flow=probability_flow,
                                                   continuous=config.training.continuous,
-                                                  denoise=True)
+                                                  denoise=True,
+                                                  save_progress=True,
+                                                  save_root=save_root / 'recon_progress')
 
     print(f'Beginning inference')
     tic = time.time()
