@@ -5,7 +5,7 @@
 #SBATCH --gres=gpu:a40:1
 #SBATCH --output=scoreMRI_%j.log
 #SBATCH --export=ALL
-#SBATCH --time=05:00:00  
+#SBATCH --time=10:00:00  
 
 cd $WORK/score-MRI
 
